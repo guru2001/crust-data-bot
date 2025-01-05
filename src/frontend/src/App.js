@@ -21,7 +21,7 @@ function App() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/apidocs", {
+      const response = await fetch("https://bitter-glynda-guru22-fabbb125.koyeb.app/apidocs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: input }),
