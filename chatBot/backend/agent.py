@@ -13,7 +13,7 @@ from langchain_openai import ChatOpenAI
 import getpass
 import os
 
-OPENAI_API_KEY='OPENAI-KEY'
+OPENAI_API_KEY=os.getenv("OPENAI_API_KEY")
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=1, api_key=OPENAI_API_KEY)
 
 @tool
