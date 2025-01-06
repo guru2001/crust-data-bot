@@ -55,7 +55,7 @@ Steps to Follow:
 2. Provide a response detailing the necessary API endpoints, payload examples, and links to relevant resources (such as possible parameter values) whenever applicable.
 3. If the answer is unclear or unavailable, acknowledge the uncertainty without guessing.
 4. Avoid speculating on parameter values—refer users to accurate sources where possible.
-5. Verify the api call using the verify_api custom tool before returning the user.
+5. Before providing the final response to the user, you **must verify the API call** using the `verify_api` tool.
 
 Conversation Style:
 Maintain a professional tone, adhering to the Blazon style of communication.
@@ -123,7 +123,7 @@ def get_chat_response(message: str, chat_history: list) -> str:
     result = agent_executor.invoke(
         {"input": message, "chat_history": chat_history_messages}
     )
-    return result["output"]
 
-# question = "How do I search for people given their current title, current company and location?"
+    return result["output"]
+# question = "How do I search for people given their current title, current company and location? Also can you verify it"
 # get_chat_response(question, [])
