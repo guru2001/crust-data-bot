@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { v4 as uuidv4 } from "uuid";
 
 function App() {
   const [messages, setMessages] = useState([
@@ -7,6 +8,7 @@ function App() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [threadId] = useState(String(uuidv4())); 
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -24,7 +26,7 @@ function App() {
       const response = await fetch("https://bitter-glynda-guru22-fabbb125.koyeb.app/apidocs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: input }),
+        body: JSON.stringify({ threadId: threadId, text: input }),
       });
       const data = await response.json();
 
@@ -66,23 +68,21 @@ function App() {
         }}
       >
         {messages.map((message, index) => (
-          <div
-            key={index}
-            style={{
-              alignSelf: message.sender === "bot" ? "flex-start" : "flex-end",
-              backgroundColor:
-                message.sender === "bot" ? "#e1f5fe" : "#c8e6c9",
-              color: "#333",
-              padding: "8px 12px",
-              borderRadius: "16px",
-              margin: "5px 0",
-              maxWidth: "75%", // Limits the width of the bubble
-              wordWrap: "break-word", // Ensures words wrap within the bubble
-              overflowWrap: "break-word", // Handles long strings or URLs
-            }}
-          >
-            <ReactMarkdown>{message.text}</ReactMarkdown>
-          </div>
+        <div
+          key={index}
+          style={{
+            alignSelf: message.sender === "bot" ? "flex-start" : "flex-end",
+            backgroundColor: message.sender === "bot" ? "#e1f5fe" : "#c8e6c9",
+            color: "#333",
+            padding: "8px 12px",
+            borderRadius: "16px",
+            margin: "5px 0",
+            maxWidth: "75%", // Ensures the bubble width doesn't exceed the container
+            whiteSpace: "pre-wrap", // Preserves line breaks and wraps long text
+          }}
+        >
+          <ReactMarkdown>{message.text}</ReactMarkdown>
+        </div>
         ))}
       </div>
       <div style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
