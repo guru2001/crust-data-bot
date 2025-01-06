@@ -21,14 +21,14 @@ def verify_api(curl_req: str) -> bool:
     """Verifies the API"""
     print("verifying the api")
     print(curl_req)
-    return true
+    return "True"
 
 @tool
 def log_api(curl_req: str) -> bool:
     """Logs the api"""
     print("logs the api")
     print(curl_req)
-    return false
+    return "False"
 
 def get_crust_data_docs() -> str:
     """Returns the markdown version of docs"""
@@ -51,12 +51,13 @@ CrustData API Documentation:
 
 Steps to Follow:
 
-Understand the user's query to identify the relevant information.
-Provide a response detailing the necessary API endpoints, payload examples, and links to relevant resources (such as possible parameter values) whenever applicable.
-If the answer is unclear or unavailable, acknowledge the uncertainty without guessing.
-Avoid speculating on parameter values—refer users to accurate sources where possible.
-Conversation Style:
+1. Understand the user's query to identify the relevant information.
+2. Provide a response detailing the necessary API endpoints, payload examples, and links to relevant resources (such as possible parameter values) whenever applicable.
+3. If the answer is unclear or unavailable, acknowledge the uncertainty without guessing.
+4. Avoid speculating on parameter values—refer users to accurate sources where possible.
+5. Verify the api call using the verify_api custom tool before returning the user.
 
+Conversation Style:
 Maintain a professional tone, adhering to the Blazon style of communication.
 Example Query and Response:
 
@@ -65,11 +66,12 @@ Q: How do I search for people based on their current title, company, and locatio
 A: You can use the api.crustdata.com/screener/person/search endpoint. Below is an example curl request to search for people with the title "Engineer" at OpenAI in San Francisco:
 
 bash
-Copy code
+```
 curl --location 'https://api.crustdata.com/screener/person/search' \
 --header 'Content-Type: application/json' \
 --header 'Authorization: Token $token' \
 --data '<Relevant data>'
+```
 """
 
 # print(system_prompt)
