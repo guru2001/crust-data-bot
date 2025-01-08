@@ -116,7 +116,7 @@ def get_chat_response(message: str, chat_history: list) -> str:
         else HumanMessage(content=chat_message['message'])
         for chat_message in chat_history
     ]
-    retrieved_docs = retrieve_documents_from_db(message) 
+    retrieved_docs = retrieve_documents_from_db(message, 3)["documents"] 
     retrieved_docs_formatted = [
         {"role": "system", "content": doc[0] if doc else ""}
         for doc in retrieved_docs
