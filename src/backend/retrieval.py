@@ -28,4 +28,4 @@ def add_document_to_db(thread_id: str, document: str):
 def get_openai_embedding(text: str):
     document_embedding = embeddings.embed_query(text)
     return document_embedding
-# retrieve_documents_from_db("How do I search for people given their current title, current company and location? Also can you verify it")
+# print(retrieve_documents_from_db("How do I search for people given their current title, current company and location? Also can you verify it", 3))
