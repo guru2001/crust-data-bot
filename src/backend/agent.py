@@ -11,28 +11,79 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 
 from retrieval import retrieve_documents_from_db
-
+import requests
+import subprocess
+import shlex
 import os
+import re
 
 OPENAI_API_KEY=os.getenv("OPENAI_API_KEY")
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=1, api_key=OPENAI_API_KEY)
+CRUST_DATA_TOKEN=os.getenv("CRUST_DATA_TOKEN")
+
+def fix_curl_command(curl_command):
+    # Step 1: Remove extra spaces after backslashes (continuation lines)
+    curl_command = re.sub(r'\\\s+', r'\\', curl_command)
+    
+    # Step 2: Ensure the headers and data are enclosed in correct quotes
+    # Fixing single quotes to double quotes for consistency if needed
+    curl_command = re.sub(r"'(.*?)'", r'"\1"', curl_command)
+
+    # Step 3: Handle any issues with the `--data` JSON string format
+    # Ensure JSON data is properly enclosed in quotes and no trailing spaces
+    curl_command = re.sub(r"--data\s+'(.*?)'\s*$", r'--data "\1"', curl_command)
+
+    # Step 4: Remove unnecessary spaces in between command options
+    curl_command = re.sub(r'\s+', ' ', curl_command)
+    
+    # Step 5: Ensure proper escaping and the correct structure
+    curl_command = curl_command.strip()  # Remove leading/trailing spaces
+    
+    return curl_command
+
 
 @tool
 def verify_api(curl_req: str) -> bool:
     """Verifies the API"""
     print("verifying the api")
+    curl_req = fix_curl_command(curl_req)
+    if "$auth_token" in curl_req:
+        curl_req = curl_req.replace("$auth_token", CRUST_DATA_TOKEN)
+    else:
+        curl_req = curl_req.replace("$token", CRUST_DATA_TOKEN)
     print(curl_req)
-    return "True"
+    curl_command = shlex.split(curl_req)
+    result = subprocess.run(curl_command, capture_output=True, text=True)
+
+    status_code = 0
+    print(result)
+    if result.returncode == 0:
+        if "HTTP" in result.stdout:
+            status_code = int(result.stdout.split()[1])
+            print(status_code)
+    else:
+        # If status code is not found, consider this a failure
+        print("Error: HTTP status code not found in the response")
+        return {"status": False, "error" : "Error: HTTP status code not found in the response"}
+        
+    if status_code in [200, 201, 204, 404]:
+        return {"status": True}
+
+
+    print(result.returncode, result.stdout)
+    return {"status": True, "error" : result.stdout}
 
 def get_crust_data_docs() -> str:
     """Returns the markdown version of docs"""
-    with open('output_summary.md', 'r') as file:
+    with open('crustDataDE.md', 'r') as file:
         deContent = file.read()
-    
     # with open('crustDataAPI.md', 'r') as file:
     #     apiContent = file.read()
+
+    with open('crustDataAPI.md', 'r') as file:
+        apiContent = file.read()
     
-    return (deContent).replace("{", "{{").replace("}", "}}")
+    return (deContent + apiContent).replace("{", "{{").replace("}", "}}")
 
 
 system_prompt = f"""\
@@ -51,8 +102,8 @@ Steps to Follow:
 4. If the answer is unclear or unavailable, acknowledge the uncertainty without guessing.
 5. Avoid speculating on parameter values—refer users to accurate sources where possible.
 6. Before providing the final response to the user, you **must verify the API call** using the `verify_api` tool. 
-7. After verification is true, The final response **must** contain the curl request and brief explanation.
-  
+7. After verification, if is it true, The final response **must** contain the curl request and brief explanation.
+8. After verification, if is it false, Return the curl and state it is incorrect because of the error.   
 
 Conversation Style:
 Maintain a professional tone, adhering to the Blazon style of communication.
@@ -61,14 +112,24 @@ Example Query and Response:
 Q: How do I search for people based on their current title, company, and location?
 
 A: You can use the api.crustdata.com/screener/person/search endpoint. Below is an example curl request to search for people with the title "Engineer" at OpenAI in San Francisco:
-
-bash
 ```
 curl --location 'https://api.crustdata.com/screener/person/search' \
 --header 'Content-Type: application/json' \
 --header 'Authorization: Token $token' \
 --data '<Relevant data>'
 ```
+Replace <Relevant data> based on the request. 
+Some example of requests:
+curl 'https://api.crustdata.com/screener/person/enrich?business_email=john.doe@example.com' \
+  --header 'Accept: application/json, text/plain, */*' \
+  --header 'Accept-Language: en-US,en;q=0.9' \
+  --header 'Authorization: Token $auth_token'
+
+curl --location 'https://api.crustdata.com/user/credits' \
+--header 'Accept: application/json, text/plain, */*' \
+--header 'Accept-Language: en-US,en;q=0.9' \
+--header 'Authorization: Token $auth_token' \
+--header 'Content-Type: application/json'
 """
 
 # print(system_prompt)

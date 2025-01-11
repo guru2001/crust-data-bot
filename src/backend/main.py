@@ -16,7 +16,7 @@ lock = asyncio.Lock()
 
 ALLOWED_CHANNELS = ["C087ZM6PWJX"]
 ALLOWED_USERS = ["U02VBVB9F28"]
-client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
+slackClient = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
 
 app.add_middleware(
     CORSMiddleware,
@@ -58,7 +58,7 @@ async def process_input(user_input: UserInput):
 
 def post_to_slack(channel, text, thread_id):
     try:
-        response = client.chat_postMessage(
+        response = slackClient.chat_postMessage(
             channel=channel,
             text=text,
             thread_ts=thread_id
